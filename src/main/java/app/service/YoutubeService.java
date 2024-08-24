@@ -11,9 +11,10 @@ import com.google.api.services.youtube.model.VideoListResponse;
 
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
@@ -78,9 +79,43 @@ public class YoutubeService {
                     }))
                     .orElse(null);
 
+            System.out.println("Maior mesmo: " + highestResolutionStream +  " | " + highestResolutionStream.getResolution() + ": " + highestResolutionStream.getCodecs());
             if (highestResolutionStream != null) {
-                File videoFile = new File("video.mp4");
-                highestResolutionStream.download(videoFile.getAbsolutePath());
+                File tempVideoFile = new File("video");
+                highestResolutionStream.download(tempVideoFile.getAbsolutePath(), "");
+
+                File convertedFile = new File(yt.getTitle());
+                System.out.println("Caminho1: " + tempVideoFile.getAbsolutePath() + ".mp4" +  " Caminho2: " + convertedFile.getAbsolutePath());
+                List<String> ffmpegCommand = Arrays.asList(
+                        "ffmpeg",
+                        "-i",  tempVideoFile.getAbsolutePath() + ".mp4",
+                        "-c:v", "libx264",
+                        "-preset", "superfast", // Define a configuração de codificação como "rápida"
+                        "-b:v", "1M", // Define a taxa de bits para 1 Mbps
+                        "-vf", "scale=1280:-1", // Redimensiona para 1280 pixels de largura, mantendo a proporção
+                        "-c:a", "aac",
+                        convertedFile.getAbsolutePath() + ".mp4"
+                );
+                // Executa o comando FFmpeg
+                ProcessBuilder processBuilder = new ProcessBuilder(ffmpegCommand);
+                processBuilder.redirectErrorStream(true);
+                Process process = processBuilder.start();
+
+                // Imprime a saída do processo FFmpeg
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        System.out.println(line);
+                    }
+                }
+
+                // Espera o processo FFmpeg terminar
+                int exitCode = process.waitFor();
+                if (exitCode == 0) {
+                    System.out.println("Conversão concluída com sucesso!");
+                } else {
+                    System.err.println("Erro durante a conversão do vídeo.");
+                }
             }
         } catch (Exception e) {
             System.out.println("Erro " + e);
