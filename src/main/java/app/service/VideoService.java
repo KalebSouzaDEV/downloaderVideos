@@ -18,8 +18,8 @@ public class VideoService {
         return videoYoutube;
     }
 
-    public byte[] downloadVideoFromID(String linkVideo) throws IOException, InterruptedException {
-        byte[] bytesVideo = this.youtubeService.downloadVideoFromID(linkVideo);
+    public byte[] downloadVideoFromID(String linkVideo) throws Exception {
+        byte[] bytesVideo = this.youtubeService.downloadVideoAndAudioFromID(linkVideo);
         return bytesVideo;
     }
 }

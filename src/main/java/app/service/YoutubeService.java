@@ -58,6 +58,94 @@ public class YoutubeService {
             return null;
         }
     }
+    public byte[] downloadVideoAndAudioFromID(String videoID) throws Exception {
+        String directoryAudio = downloadAudioFromID(videoID);
+        try {
+            String videoUrl = "https://www.youtube.com/watch?v=" + videoID;
+            Youtube yt = new Youtube(videoUrl);
+
+            // Obtém todas as streams de vídeo
+            List<Stream> streams = yt.streams().getAll()
+                    .stream().toList();
+
+            // Seleciona a maior resolução disponível
+            Stream highestResolutionStream = streams.stream()
+                    .max(Comparator.comparingInt(s -> {
+                        String resolution = s.getResolution();
+                        if (resolution != null && resolution.matches("\\d+p")) {
+                            return Integer.parseInt(resolution.replace("p", ""));
+                        }
+                        return 0; // Se não tiver resolução, considere 0
+                    }))
+                    .orElse(null);
+
+            System.out.println("Maior mesmo: " + highestResolutionStream +  " | " + highestResolutionStream.getResolution() + ": " + highestResolutionStream.getCodecs());
+            if (highestResolutionStream != null) {
+                File tempVideoFile = new File("video");
+                highestResolutionStream.download(tempVideoFile.getAbsolutePath(), "");
+
+                File convertedFile = new File(yt.getTitle());
+                List<String> ffmpegCommand = Arrays.asList(
+                        "ffmpeg",
+                        "-i", tempVideoFile.getAbsolutePath() + ".mp4",
+                        "-i", directoryAudio + ".mp4",    // Caminho do arquivo de áudio
+                        "-c:v", "libx264",      // Codec de vídeo
+                        "-preset", "superfast", // Configuração de codificação
+                        "-b:v", "1M",           // Taxa de bits para vídeo
+                        "-vf", "scale=1280:-1", // Redimensiona para 1280 pixels de largura, mantendo a proporção
+                        "-c:a", "aac",          // Codec de áudio
+                        "-b:a", "128k",         // Taxa de bits para áudio
+                        "-map", "0:v:0",        // Mapeia o vídeo do primeiro arquivo de entrada
+                        "-map", "1:a:0",        // Mapeia o áudio do segundo arquivo de entrada
+                        convertedFile.getAbsolutePath() + ".mp4"          // Caminho do arquivo de saída
+                );
+                // Executa o comando FFmpeg
+                ProcessBuilder processBuilder = new ProcessBuilder(ffmpegCommand);
+                processBuilder.redirectErrorStream(true);
+                Process process = processBuilder.start();
+
+                // Imprime a saída do processo FFmpeg
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        System.out.println(line);
+                    }
+                }
+
+                // Espera o processo FFmpeg terminar
+                int exitCode = process.waitFor();
+                if (exitCode == 0) {
+                    System.out.println("Combinação de áudio e vídeo concluída com sucesso!");
+                } else {
+                    System.err.println("Erro durante a combinação de áudio e vídeo.");
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Erro " + e);
+        }
+        return null;
+    }
+
+    public String downloadAudioFromID(String videoID) throws Exception {
+        String videoUrl = "https://www.youtube.com/watch?v=" + videoID;
+        Youtube yt = new Youtube(videoUrl);
+
+        List<Stream> streams = yt.streams().getAll()
+                .stream().toList();
+
+        Stream highestQualityAudioStream = streams.stream()
+                .filter(s -> s.getAudioCodec() != null && s.getAudioCodec().startsWith("mp4a"))
+                .findFirst()
+                .orElse(null);
+
+        if (highestQualityAudioStream != null) {
+            File audioFile = new File("audio"); // ou outro formato apropriado
+            highestQualityAudioStream.download(audioFile.getAbsolutePath(), "");
+            System.out.println("Áudio baixado: " + audioFile.getAbsolutePath());
+            return audioFile.getAbsolutePath();
+        }
+        return null;
+    }
 
     public byte[] downloadVideoFromID(String videoID) throws InterruptedException, IOException {
         try {
@@ -85,7 +173,6 @@ public class YoutubeService {
                 highestResolutionStream.download(tempVideoFile.getAbsolutePath(), "");
 
                 File convertedFile = new File(yt.getTitle());
-                System.out.println("Caminho1: " + tempVideoFile.getAbsolutePath() + ".mp4" +  " Caminho2: " + convertedFile.getAbsolutePath());
                 List<String> ffmpegCommand = Arrays.asList(
                         "ffmpeg",
                         "-i",  tempVideoFile.getAbsolutePath() + ".mp4",
@@ -116,6 +203,7 @@ public class YoutubeService {
                 } else {
                     System.err.println("Erro durante a conversão do vídeo.");
                 }
+                downloadAudioFromID(videoID);
             }
         } catch (Exception e) {
             System.out.println("Erro " + e);
