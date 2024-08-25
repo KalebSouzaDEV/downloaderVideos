@@ -1,5 +1,6 @@
 package app.service;
 
+import app.DownloaderVideosApplication;
 import com.github.felipeucelli.javatube.Stream;
 import com.github.felipeucelli.javatube.Youtube;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
@@ -19,6 +20,7 @@ import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Enumeration;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -266,13 +268,15 @@ public class YoutubeService {
 
 
     private static File extractFfmpegFromClasspath() throws IOException {
-        String ffmpegFileName = System.getProperty("os.name").toLowerCase().contains("win") ? "ffmpeg.exe" : "ffmpeg";
-        try (InputStream inputStream = YoutubeService.class.getClassLoader().getResourceAsStream("ffmpeg/" + ffmpegFileName)) {
+        String ffmpegFileName = "ffmpeg/ffmpeg.exe";
+        // Carregar o arquivo do classpath
+        try (InputStream inputStream = DownloaderVideosApplication.class.getClassLoader().getResourceAsStream(ffmpegFileName)) {
             if (inputStream == null) {
-                throw new FileNotFoundException("O arquivo ffmpeg não foi encontrado no classpath.");
+                throw new IOException("O arquivo ffmpeg não foi encontrado no classpath.");
             }
 
-            File tempFfmpegFile = File.createTempFile("ffmpeg", ffmpegFileName);
+            // Criar um arquivo temporário para o ffmpeg.exe
+            File tempFfmpegFile = File.createTempFile("ffmpeg", ".exe");
             tempFfmpegFile.deleteOnExit();
 
             try (FileOutputStream outputStream = new FileOutputStream(tempFfmpegFile)) {
