@@ -30,11 +30,13 @@ public class VideoController {
     @GetMapping("/downloadVideoFull/{videoID}")
     public ResponseEntity<byte[]> downloadVideo(@PathVariable String videoID) {
         try {
+            System.out.println("Vai se foder ");
             byte[] bytesFromVideo = this.videoService.downloadFullVideoFromID(videoID);
 
             HttpHeaders headers = new HttpHeaders();
             headers.add(HttpHeaders.CONTENT_TYPE, "video/mp4");
             headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=video.mp4");
+            System.out.println("Vai se foder22 ");
 
             return new ResponseEntity<>(bytesFromVideo, headers, HttpStatus.OK);
         } catch (Exception e) {

@@ -23,6 +23,8 @@ public class VideoService {
     }
 
     public byte[] downloadFullVideoFromID(String linkVideo) throws Exception {
+        System.out.println("Vai se foder23332 ");
+
         byte[] bytesVideo = this.youtubeService.downloadVideoAndAudioFromID(linkVideo);
         return bytesVideo;
     }

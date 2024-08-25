@@ -66,8 +66,12 @@ public class YoutubeService {
         }
     }
     public byte[] downloadVideoAndAudioFromID(String videoID) throws Exception {
+        System.out.println("Vai se foder2446161 " + videoID);
+
         File audioFile = downloadAudioFromID(videoID); // Supondo que downloadAudioFromID também detecta e usa a extensão correta.
         try {
+            System.out.println("Vai se foder244 ");
+
             String videoUrl = "https://www.youtube.com/watch?v=" + videoID;
             Youtube yt = new Youtube(videoUrl);
 
@@ -160,6 +164,7 @@ public class YoutubeService {
 
         if (highestQualityAudioStream != null) {
             File audioFile = new File("audio"); // ou outro formato apropriado
+
             highestQualityAudioStream.download(audioFile.getAbsolutePath(), "");
             System.out.println("Áudio baixado: " + audioFile.getAbsolutePath());
             return audioFile;
