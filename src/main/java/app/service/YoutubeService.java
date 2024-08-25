@@ -97,8 +97,10 @@ public class YoutubeService {
                 String sanitizedTitle = yt.getTitle().replaceAll("[^a-zA-Z0-9.-]", "_");
                 File convertedFile = new File(sanitizedTitle);
 
+                File ffmpegFile = extractFfmpegFromClasspath();
+
                 List<String> ffmpegCommand = Arrays.asList(
-                        "ffmpeg",
+                        ffmpegFile.getAbsolutePath(),
                         "-i", tempVideoFile.getAbsolutePath() + '.' + videoExtension, // Usa a extensão detectada
                         "-i", audioFile.getAbsolutePath() + ".mp4",    // Caminho do arquivo de áudio (assumindo que já está correto)
                         "-c:v", "libx264",      // Codec de vídeo
@@ -212,8 +214,10 @@ public class YoutubeService {
                 String sanitizedTitle = yt.getTitle().replaceAll("[^a-zA-Z0-9.-]", "_");
                 File convertedFile = new File(sanitizedTitle + "_converted.mp4");
 
+                File ffmpegFile = extractFfmpegFromClasspath();
+
                 List<String> ffmpegCommand = Arrays.asList(
-                        "ffmpeg",
+                        ffmpegFile.getAbsolutePath(),
                         "-i", tempVideoFile.getAbsolutePath(),
                         "-c:v", "libx264",
                         "-preset", "superfast",
@@ -252,4 +256,26 @@ public class YoutubeService {
         return null;
     }
 
+
+    private static File extractFfmpegFromClasspath() throws IOException {
+        String ffmpegFileName = System.getProperty("os.name").toLowerCase().contains("win") ? "ffmpeg.exe" : "ffmpeg";
+        try (InputStream inputStream = YoutubeService.class.getClassLoader().getResourceAsStream("ffmpeg/" + ffmpegFileName)) {
+            if (inputStream == null) {
+                throw new FileNotFoundException("O arquivo ffmpeg não foi encontrado no classpath.");
+            }
+
+            File tempFfmpegFile = File.createTempFile("ffmpeg", ffmpegFileName);
+            tempFfmpegFile.deleteOnExit();
+
+            try (FileOutputStream outputStream = new FileOutputStream(tempFfmpegFile)) {
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
+            }
+
+            return tempFfmpegFile;
+        }
+    }
 }
