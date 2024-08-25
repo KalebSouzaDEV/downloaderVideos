@@ -62,14 +62,17 @@ public class VideoController {
     @GetMapping("/downloadOnlyAudio/{videoID}")
     public ResponseEntity<byte[]> downloadOnlyAudio(@PathVariable String videoID) {
         try {
+            System.out.println("Está vindo aqui");
             byte[] bytesFromVideo = this.videoService.downloadAudioFromID(videoID);
 
             HttpHeaders headers = new HttpHeaders();
             headers.add(HttpHeaders.CONTENT_TYPE, "video/mp4");
             headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=video.mp4");
+            System.out.println("Está vindo aqui retorno");
 
             return new ResponseEntity<>(bytesFromVideo, headers, HttpStatus.OK);
         } catch (Exception e) {
+            System.out.println("Está vindo aqui erro " + e);
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
     }

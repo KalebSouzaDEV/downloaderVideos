@@ -35,7 +35,11 @@ public class VideoService {
     }
 
     public byte[] downloadAudioFromID(String linkVideo) throws Exception {
+        System.out.println("Está vindo aqui retorno2");
+
         File audioVideo = this.youtubeService.downloadAudioFromID(linkVideo);
+        System.out.println("Está vindo aqui retorno3");
+
         Path pathToVideo = Path.of(audioVideo.getAbsolutePath() + ".mp4");
         byte[] audioBytes = Files.readAllBytes(pathToVideo);
         return audioBytes;

@@ -153,6 +153,7 @@ public class YoutubeService {
     public File downloadAudioFromID(String videoID) throws Exception {
         String videoUrl = "https://www.youtube.com/watch?v=" + videoID;
         Youtube yt = new Youtube(videoUrl);
+        System.out.println("Está vindo aqui retorno4");
 
         List<Stream> streams = yt.streams().getAll()
                 .stream().toList();
@@ -161,9 +162,11 @@ public class YoutubeService {
                 .filter(s -> s.getAudioCodec() != null && s.getAudioCodec().startsWith("mp4a"))
                 .findFirst()
                 .orElse(null);
+        System.out.println("Está vindo aqui retorno5");
 
         if (highestQualityAudioStream != null) {
             File audioFile = new File("audio"); // ou outro formato apropriado
+            System.out.println("Está vindo aqui retorno6");
 
             highestQualityAudioStream.download(audioFile.getAbsolutePath(), "");
             System.out.println("Áudio baixado: " + audioFile.getAbsolutePath());
