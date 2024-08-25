@@ -71,28 +71,24 @@ public class YoutubeService {
             String videoUrl = "https://www.youtube.com/watch?v=" + videoID;
             Youtube yt = new Youtube(videoUrl);
 
-            // Obtém todas as streams de vídeo
             List<Stream> streams = yt.streams().getAll().stream().toList();
 
-            // Seleciona a maior resolução disponível
             Stream highestResolutionStream = streams.stream()
                     .max(Comparator.comparingInt(s -> {
                         String resolution = s.getResolution();
                         if (resolution != null && resolution.matches("\\d+p")) {
                             return Integer.parseInt(resolution.replace("p", ""));
                         }
-                        return 0; // Se não tiver resolução, considere 0
+                        return 0;
                     }))
                     .orElse(null);
 
             if (highestResolutionStream != null) {
-                // Obtém a URL de download do vídeo
                 String videoDownloadUrl = highestResolutionStream.getUrl();
 
-                // Determina a extensão do arquivo a partir da URL de download
                 String videoExtension = getExtensionFromUrl(videoDownloadUrl);
                 if (videoExtension == null || videoExtension.isEmpty()) {
-                    videoExtension = "mp4"; // Use .mp4 como padrão se a extensão não puder ser determinada
+                    videoExtension = "mp4";
                 }
 
                 File tempVideoFile = new File("video");
@@ -116,12 +112,10 @@ public class YoutubeService {
                         convertedFile.getAbsolutePath() + ".mp4" // Caminho do arquivo de saída final em .mp4
                 );
 
-                // Executa o comando FFmpeg
                 ProcessBuilder processBuilder = new ProcessBuilder(ffmpegCommand);
                 processBuilder.redirectErrorStream(true);
                 Process process = processBuilder.start();
 
-                // Imprime a saída do processo FFmpeg
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                     String line;
                     while ((line = reader.readLine()) != null) {
@@ -129,7 +123,6 @@ public class YoutubeService {
                     }
                 }
 
-                // Espera o processo FFmpeg terminar
                 int exitCode = process.waitFor();
                 if (exitCode == 0) {
                     System.out.println("Combinação de áudio e vídeo concluída com sucesso! " + convertedFile.toPath());
@@ -194,33 +187,28 @@ public class YoutubeService {
             String videoUrl = "https://www.youtube.com/watch?v=" + videoID;
             Youtube yt = new Youtube(videoUrl);
 
-            // Obtém todas as streams de vídeo
             List<Stream> streams = yt.streams().getAll()
                     .stream().toList();
 
-            // Seleciona a maior resolução disponível
             Stream highestResolutionStream = streams.stream()
                     .max(Comparator.comparingInt(s -> {
                         String resolution = s.getResolution();
                         if (resolution != null && resolution.matches("\\d+p")) {
                             return Integer.parseInt(resolution.replace("p", ""));
                         }
-                        return 0; // Se não tiver resolução, considere 0
+                        return 0;
                     }))
                     .orElse(null);
 
             if (highestResolutionStream != null) {
-                // Certifique-se de adicionar a extensão correta ao criar o arquivo
                 File tempVideoFile = new File("video.mp4");
                 highestResolutionStream.download(tempVideoFile.getAbsolutePath(), "");
 
-                // Verifique se o arquivo baixado é válido antes de continuar
                 if (!tempVideoFile.exists() || tempVideoFile.length() == 0) {
                     System.err.println("Erro: o vídeo não foi baixado corretamente.");
                     return null;
                 }
 
-                // Nomeie o arquivo de saída de forma adequada para evitar problemas com caracteres
                 String sanitizedTitle = yt.getTitle().replaceAll("[^a-zA-Z0-9.-]", "_");
                 File convertedFile = new File(sanitizedTitle + "_converted.mp4");
 
@@ -235,12 +223,10 @@ public class YoutubeService {
                         convertedFile.getAbsolutePath()
                 );
 
-                // Executa o comando FFmpeg
                 ProcessBuilder processBuilder = new ProcessBuilder(ffmpegCommand);
                 processBuilder.redirectErrorStream(true);
                 Process process = processBuilder.start();
 
-                // Imprime a saída do processo FFmpeg
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                     String line;
                     while ((line = reader.readLine()) != null) {
@@ -248,12 +234,10 @@ public class YoutubeService {
                     }
                 }
 
-                // Espera o processo FFmpeg terminar
                 int exitCode = process.waitFor();
                 if (exitCode == 0) {
                     System.out.println("Conversão concluída com sucesso!");
 
-                    // Retorna o vídeo convertido como bytes
                     Path pathToVideo = Path.of(convertedFile.getAbsolutePath());
                     byte[] videoBytes = Files.readAllBytes(pathToVideo);
                     Files.deleteIfExists(tempVideoFile.toPath());  // Limpa o arquivo temporário
