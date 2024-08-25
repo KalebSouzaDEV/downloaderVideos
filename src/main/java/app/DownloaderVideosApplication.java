@@ -21,26 +21,20 @@ public class DownloaderVideosApplication {
 		File outputFile = new File(outputFilePath);
 		outputFile.getParentFile().mkdirs();
 
-		// Verifique se o arquivo já existe
-		if (outputFile.exists()) {
-			System.out.println("O arquivo já existe em: " + outputFile.getAbsolutePath());
-		} else {
-			try {
-				downloadFile(fileUrl, outputFilePath);
-				System.out.println("Download concluído com sucesso.");
+		try {
+			downloadFile(fileUrl, outputFilePath);
+			System.out.println("Download concluído com sucesso.");
 
-				// Verifique se o arquivo realmente foi salvo
-				if (outputFile.exists() && !outputFile.isDirectory()) {
-					System.out.println("Arquivo encontrado em: " + outputFile.getAbsolutePath());
-				} else {
-					System.err.println("Arquivo não encontrado em: " + outputFile.getAbsolutePath());
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-				System.err.println("Erro ao fazer o download do arquivo.");
+			// Verifique se o arquivo realmente foi salvo
+			if (outputFile.exists() && !outputFile.isDirectory()) {
+				System.out.println("Arquivo encontrado em: " + outputFile.getAbsolutePath());
+			} else {
+				System.err.println("Arquivo não encontrado em: " + outputFile.getAbsolutePath());
 			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.err.println("Erro ao fazer o download do arquivo.");
 		}
-
 		SpringApplication.run(DownloaderVideosApplication.class, args);
 	}
 
